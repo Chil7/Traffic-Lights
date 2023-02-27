@@ -8,6 +8,8 @@ public class TrafficLight : MonoBehaviour
     [Range(0, 10)]
     public int waitingCars;
 
+    [SerializeField] private string lightName;
+
     public MeshRenderer Renderer { get; private set; }
 
     public StateMachine StateMachine { get; private set; }
@@ -21,6 +23,8 @@ public class TrafficLight : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        EventManager.increaseCarsWaitingEvent += CarWaiting;
+
         waitingCars = 0;
 
         StateMachine.SetState(new RedLight(this));
@@ -45,6 +49,31 @@ public class TrafficLight : MonoBehaviour
         }
 
         StateMachine.OnUpdate();
+    }
+
+    public void ChangeLight(int _lightID)
+    {
+        if (_lightID == 0)
+        {
+            StateMachine.SetState(new GreenLight(this));
+        }
+        else if (_lightID == 1)
+        {
+            StateMachine.SetState(new AmberLight(this));
+        }
+        else if (_lightID == 2)
+        {
+            StateMachine.SetState(new RedLight(this));
+        }
+    }
+
+    public void CarWaiting(int _carAmount, string _lightName)
+    {
+        if (_lightName == lightName)
+        {
+            waitingCars += _carAmount;
+        }
+        
     }
 
     public enum TrafficLightsID { green = 0, orange = 1, red = 2 }

@@ -17,6 +17,8 @@ public class Health : MonoBehaviour
 
     private void Start()
     {
+        EventManager.loseHealthEvent += Hurt;
+
         currenthealth = health / 100;
         bar.fillAmount = currenthealth;
         healthText.text = "Current Health " + health;
