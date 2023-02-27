@@ -28,4 +28,16 @@ public class Health : MonoBehaviour
         bar.fillAmount = currenthealth;
         healthText.text = "Current Health " + health;
     }
+
+    public void Hurt(float _amount)
+    {
+        if (health - _amount > 0)
+        {
+            health -= _amount;
+        }
+        else
+        {
+            health = 0;
+        }
+    }
 }
