@@ -8,7 +8,9 @@ public class EnemyAI : MonoBehaviour
 
     
     [SerializeField] private GameObject navTarget;
+    [SerializeField] private GameObject player;
     [SerializeField] private float stoppingDist;
+    [SerializeField] private float detectionDist;
 
     public StateMachine StateMachine { get; private set; }
 
@@ -69,6 +71,7 @@ public class EnemyAI : MonoBehaviour
 
         public override void OnEnter()
         {
+            Debug.Log("Move");
             //set the agent to stopped
             instance.agent.isStopped = true;
         }
@@ -76,7 +79,11 @@ public class EnemyAI : MonoBehaviour
         public override void OnUpdate()
         {
             //update the position of the target object and move towads it
-            if (Vector3.Distance(instance.transform.position, instance.navTarget.transform.position) > instance.stoppingDist)
+            if (Vector3.Distance(instance.transform.position, instance.player.transform.position) < instance.detectionDist)
+            {
+                instance.StateMachine.SetState(new ChaseState(instance));
+            }
+            else if (Vector3.Distance(instance.transform.position, instance.navTarget.transform.position) > instance.stoppingDist)
             {
                 instance.agent.SetDestination(instance.navTarget.transform.position);
             }
@@ -96,22 +103,54 @@ public class EnemyAI : MonoBehaviour
 
         public override void OnEnter()
         {
+            Debug.Log("Idle");
             instance.agent.isStopped = true;
         }
 
         public override void OnUpdate()
         {
-            if (Vector3.Distance(instance.transform.position, instance.navTarget.transform.position) > instance.stoppingDist)
+            if (Vector3.Distance(instance.transform.position, instance.player.transform.position) < instance.detectionDist) 
+            {
+                instance.StateMachine.SetState(new ChaseState(instance));
+            }
+            else if (Vector3.Distance(instance.transform.position, instance.navTarget.transform.position) > instance.stoppingDist)
             {
                 //seitch to movestate
                 instance.StateMachine.SetState(new MoveState(instance));
             }
+
            
         }
+    }
 
-        public override void OnExit()
+    public class ChaseState : EnemyMoveState
+    {
+        public ChaseState(EnemyAI _instance) : base(_instance)
         {
-            
         }
+
+        public override void OnEnter()
+        {
+            Debug.Log("Chase");
+            instance.agent.isStopped = false;
+        }
+
+        public override void OnUpdate()
+        {
+            if(Vector3.Distance(instance.transform.position, instance.player.transform.position) < instance.detectionDist)
+            {
+                instance.agent.SetDestination(instance.player.transform.position);
+            }
+            else
+            {
+                instance.StateMachine.SetState(new IdleState(instance));
+            }
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionDist);
     }
 }
