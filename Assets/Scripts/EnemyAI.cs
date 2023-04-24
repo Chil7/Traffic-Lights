@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.AI;
 using FSM2;
 
@@ -12,6 +13,11 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float stoppingDist;
     [SerializeField] private float detectionDist;
 
+    [SerializeField] private float runSpeed;
+    [SerializeField] private float walkSpeed;
+
+    private Animator animator;
+
     public StateMachine StateMachine { get; private set; }
 
     // Start is called before the first frame update
@@ -23,6 +29,8 @@ public class EnemyAI : MonoBehaviour
         {
             Debug.LogError("This object needs an object agent attached to it");
         }
+
+        animator = GetComponentInChildren<Animator>();
 
     }
 
@@ -72,6 +80,8 @@ public class EnemyAI : MonoBehaviour
         public override void OnEnter()
         {
             Debug.Log("Move");
+            instance.animator.ResetTrigger("IsWalk");
+            instance.agent.speed = instance.walkSpeed;
             //set the agent to stopped
             instance.agent.isStopped = true;
         }
@@ -93,6 +103,11 @@ public class EnemyAI : MonoBehaviour
                 instance.StateMachine.SetState(new IdleState(instance));
             }
         }
+
+        public override void OnExit()
+        {
+            instance.animator.ResetTrigger("IsWalk");
+        }
     }
 
     public class IdleState : EnemyMoveState
@@ -104,6 +119,7 @@ public class EnemyAI : MonoBehaviour
         public override void OnEnter()
         {
             Debug.Log("Idle");
+            instance.animator.SetTrigger("IsIdle");
             instance.agent.isStopped = true;
         }
 
@@ -121,6 +137,11 @@ public class EnemyAI : MonoBehaviour
 
            
         }
+
+        public override void OnExit()
+        {
+            instance.animator.ResetTrigger("IsIdle");
+        }
     }
 
     public class ChaseState : EnemyMoveState
@@ -132,6 +153,8 @@ public class EnemyAI : MonoBehaviour
         public override void OnEnter()
         {
             Debug.Log("Chase");
+            instance.animator.SetTrigger("IsRun");
+            instance.agent.speed = instance.runSpeed;
             instance.agent.isStopped = false;
         }
 
@@ -145,6 +168,11 @@ public class EnemyAI : MonoBehaviour
             {
                 instance.StateMachine.SetState(new IdleState(instance));
             }
+        }
+
+        public override void OnExit()
+        {
+            instance.animator.ResetTrigger("IsRun");
         }
     }
 
